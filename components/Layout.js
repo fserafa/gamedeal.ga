@@ -25,7 +25,7 @@ export default function Layout({ children }) {
             </Head>
             <header>
 
-                <Navbar collapseOnSelect expand="lg" bg="dark" variant="dark">
+                <Navbar collapseOnSelect expand="lg" bg="dark" variant="dark" className="fixed-nav">
                     <Container>
 
                         <Navbar.Brand href="#home" >gamedeal.ga</Navbar.Brand>

@@ -33,3 +33,10 @@ html {
     text-decoration: none;
     color: #0085a1;
 }
+
+.fixed-nav {
+    position: fixed;
+    width: 100%;
+    z-index: 99;
+    top: 0;
+}

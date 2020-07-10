@@ -137,7 +137,7 @@ export default function Index({ allDealsData }) {
 					{/* <CarouselItems data={paginatedFreeGames} /> */}
 
 
-					<Row className="justify-content-center" id="deals">
+					<Row className="justify-content-center mt-5" id="deals">
 						<Col lg={10}>
 							<h1 className="my-4">Deals</h1>
 						</Col>
@@ -156,7 +156,7 @@ export default function Index({ allDealsData }) {
 									<a href={deal.data.url}>
 										<h5 className="post-title">{deal.data.title}</h5>
 
-										<p>
+										<p style={{ wordBreak: 'break-all' }}>
 											{deal.data.url}
 										</p>
 									</a>
