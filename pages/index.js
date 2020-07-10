@@ -1,209 +1,206 @@
 import Head from 'next/head'
+import Layout, { siteTitle } from '../components/Layout'
+import { useEffect, useState } from 'react';
+import api from '../services/api';
+import { Badge, Col, Row, Container, Spinner } from 'react-bootstrap';
+import moment from 'moment';
+import { getDealsData } from '../lib/deals'
+import About from '../components/About';
 
-export default function Home() {
-  return (
-    <div className="container">
-      <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
 
-      <main>
-        <h1 className="title">
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
+export async function getStaticProps() {
+	const allDealsData = await getDealsData();
+	return {
+		props: {
+			allDealsData
+		}
+	}
+}
 
-        <p className="description">
-          Get started by editing <code>pages/index.js</code>
-        </p>
+export default function Index({ allDealsData }) {
+	const [deals, setDeals] = useState([]);
+	const [freeGames, setFreeGames] = useState([]);
+	const [paginatedFreeGames, setPaginatedFreeGames] = useState([]);
+	const [loading, setLoading] = useState(true);
 
-        <div className="grid">
-          <a href="https://nextjs.org/docs" className="card">
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
+	useEffect(() => {
+		// (async () => {
+		// 	setLoading(true)
 
-          <a href="https://nextjs.org/learn" className="card">
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
+		// 	const response = await api.get('/r/gamedeals/new.json?limit=50');
+		// 	const { data } = response.data
+		// 	// console.log(data.children)
 
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className="card"
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
+		// 	extractFreeGames(data.children)
+		// 	extractStore(data.children)
 
-          <a
-            href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className="card"
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
+		// 	// console.log(readyData)
+		// 	// setData(readyData);
+		// 	setLoading(false);
+		// })();
+		setLoading(true)
 
-      <footer>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className="logo" />
-        </a>
-      </footer>
+		extractStore()
+		extractFreeGames()
 
-      <style jsx>{`
-        .container {
-          min-height: 100vh;
-          padding: 0 0.5rem;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-        }
+		setLoading(false)
 
-        main {
-          padding: 5rem 0;
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-        }
+	}, []);
 
-        footer {
-          width: 100%;
-          height: 100px;
-          border-top: 1px solid #eaeaea;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
 
-        footer img {
-          margin-left: 0.5rem;
-        }
+	function extractStore() {
+		let data = [...allDealsData]
 
-        footer a {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
+		data.map(deal => {
+			let matches = deal.data.title.match(/\[(.*?)\]/);
 
-        a {
-          color: inherit;
-          text-decoration: none;
-        }
+			if (matches) {
+				var submatch = matches[1];
+				deal.data.store = submatch;
+			}
+		})
 
-        .title a {
-          color: #0070f3;
-          text-decoration: none;
-        }
+		setDeals(data)
+	}
 
-        .title a:hover,
-        .title a:focus,
-        .title a:active {
-          text-decoration: underline;
-        }
+	function extractFreeGames() {
+		let data = [...allDealsData]
 
-        .title {
-          margin: 0;
-          line-height: 1.15;
-          font-size: 4rem;
-        }
+		let pattern = new RegExp('([a-z0-9]*' + 'Free' + '[a-z0-9]*)', 'gi')
+		let freeGames = [];
 
-        .title,
-        .description {
-          text-align: center;
-        }
+		data.map(deal => {
+			let matches = deal.data.title.match(pattern);
 
-        .description {
-          line-height: 1.5;
-          font-size: 1.5rem;
-        }
+			if (matches) {
+				freeGames = [...freeGames, deal]
+			}
+		})
 
-        code {
-          background: #fafafa;
-          border-radius: 5px;
-          padding: 0.75rem;
-          font-size: 1.1rem;
-          font-family: Menlo, Monaco, Lucida Console, Liberation Mono,
-            DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
-        }
+		// setPaginatedFreeGames(paginate(freeGames, 3))
+		setFreeGames(freeGames);
+	}
 
-        .grid {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-wrap: wrap;
+	if (loading) {
+		return (
+			<>
+				<div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+					<Spinner animation="border" role="status">
+						<span className="sr-only"></span>
+					</Spinner>
+				</div>
+				<Container>
+					<Row className="justify-content-center">
+						{allDealsData.map(deal => {
+							let matches = deal.data.title.match(/\[(.*?)\]/);
 
-          max-width: 800px;
-          margin-top: 3rem;
-        }
+							if (matches) {
+								var submatch = matches[1];
+								deal.data.store = submatch;
+							}
 
-        .card {
-          margin: 1rem;
-          flex-basis: 45%;
-          padding: 1.5rem;
-          text-align: left;
-          color: inherit;
-          text-decoration: none;
-          border: 1px solid #eaeaea;
-          border-radius: 10px;
-          transition: color 0.15s ease, border-color 0.15s ease;
-        }
+							return (
+								< Col lg={4} key={deal.data.id} className="d-flex" >
+									<div className="card-post d-flex flex-column justify-content-between">
 
-        .card:hover,
-        .card:focus,
-        .card:active {
-          color: #0070f3;
-          border-color: #0070f3;
-        }
+										<h6><Badge variant="secondary">#{deal.data.store}</Badge></h6>
 
-        .card h3 {
-          margin: 0 0 1rem 0;
-          font-size: 1.5rem;
-        }
+										<a className="deal-link" href={deal.data.url}>
+											<h5 className="post-title">{deal.data.title}</h5>
+										</a>
+										<h5 className="post-title">{deal.data.selftext}</h5>
 
-        .card p {
-          margin: 0;
-          font-size: 1.25rem;
-          line-height: 1.5;
-        }
 
-        .logo {
-          height: 1em;
-        }
+										<small className="meta"><p>Posted {moment.unix(deal.data.created).format('lll')} via <a href={`https://reddit.com/${deal.data.permalink}`} target="_blank" rel="noopener noreferrer">reddit</a></p></small>
+									</div>
+								</Col>
+							)
+						})}
+					</Row>
+				</Container >
+			</>
+		)
+	}
 
-        @media (max-width: 600px) {
-          .grid {
-            width: 100%;
-            flex-direction: column;
-          }
-        }
-      `}</style>
+	return (
+		<Layout>
+			<Head>
+				<title>{siteTitle}</title>
+			</Head>
 
-      <style jsx global>{`
-        html,
-        body {
-          padding: 0;
-          margin: 0;
-          font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
-            Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue,
-            sans-serif;
-        }
+			<section>
+				<Container>
 
-        * {
-          box-sizing: border-box;
-        }
-      `}</style>
-    </div>
-  )
+
+					{/* <CarouselTeste data={data} /> */}
+
+					{/* <CarouselItems data={paginatedFreeGames} /> */}
+
+
+					<Row className="justify-content-center" id="deals">
+						<Col lg={10}>
+							<h1 className="my-4">Deals</h1>
+						</Col>
+					</Row>
+
+					<Row className="justify-content-center">
+
+						{(deals.map(deal => (
+
+
+							<Col lg={10} key={deal.data.id} className="post-preview">
+								<div>
+
+									<h6>  <Badge variant="secondary">#{deal.data.store}</Badge></h6>
+
+									<a href={deal.data.url}>
+										<h5 className="post-title">{deal.data.title}</h5>
+
+										<p>
+											{deal.data.url}
+										</p>
+									</a>
+									<small><p>Posted {moment.unix(deal.data.created).format('lll')} via <a href={`https://reddit.com/${deal.data.permalink}`} target="_blank" rel="noopener noreferrer">reddit</a></p></small>
+
+								</div>
+								<hr />
+							</Col>
+						))
+						)}
+					</Row>
+					<Row className="justify-content-center" id="free">
+						<h1 className="my-4">Free</h1>
+					</Row>
+					<Row className="justify-content-center">
+
+						{freeGames.map(deal => (
+
+							<Col lg={4} key={deal.data.id} className="d-flex">
+								<div className="card-post d-flex flex-column justify-content-between">
+
+									<h6><Badge variant="secondary">#{deal.data.store}</Badge></h6>
+
+									<a className="deal-link" href={deal.data.url}>
+										<h5 className="post-title">{deal.data.title}</h5>
+
+										{/* <p>
+							{deal.data.url}
+						</p> */}
+									</a>
+
+									<small className="meta"><p>Posted {moment.unix(deal.data.created).format('lll')} via <a href={`https://reddit.com/${deal.data.permalink}`} target="_blank" rel="noopener noreferrer">reddit</a></p></small>
+								</div>
+
+							</Col>
+						))}
+					</Row>
+
+				</Container >
+
+			</section>
+			<section>
+				<About />
+			</section>
+		</Layout >
+	)
 }
