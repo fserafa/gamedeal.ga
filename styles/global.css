@@ -40,3 +40,39 @@ html {
     z-index: 99;
     top: 0;
 }
+
+.page-link {
+    color: #212529;
+}
+
+.page-link:hover {
+    color: #0085a1;
+}
+
+.page-item.active .page-link {
+    border-color: #0085a1 !important;
+    background-color: #0085a1 !important;
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    height: 100px;
+    width: 100px;
+    outline: black;
+    background-size: 100%, 100%;
+    /* border-radius: 50%; */
+    background-image: none;
+    font-family: "fontAwesome !Important";
+}
+
+.carousel-control-next-icon:after {
+    content: "#xf060";
+    font-size: 40px;
+    color: red;
+}
+
+.carousel-control-prev-icon:after {
+    content: "<";
+    font-size: 40px;
+    color: #0085a1;
+}

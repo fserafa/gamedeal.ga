@@ -1,12 +1,13 @@
 import Head from 'next/head'
 import Layout, { siteTitle } from '../components/Layout'
-import { useEffect, useState } from 'react';
-import api from '../services/api';
-import { Badge, Col, Row, Container, Spinner } from 'react-bootstrap';
-import moment from 'moment';
+import { useEffect, useState, useRef } from 'react';
+import { Container, Spinner, Pagination, Row } from 'react-bootstrap';
 import { getDealsData } from '../lib/deals'
 import About from '../components/About';
-
+import FreeGames from '../components/FreeGames';
+import Deals from '../components/Deals';
+import StaticContent from '../components/StaticContent';
+import CustomCarousel from '../components/CustomCarousel'
 
 export async function getStaticProps() {
 	const allDealsData = await getDealsData();
@@ -21,23 +22,13 @@ export default function Index({ allDealsData }) {
 	const [deals, setDeals] = useState([]);
 	const [freeGames, setFreeGames] = useState([]);
 	const [paginatedFreeGames, setPaginatedFreeGames] = useState([]);
+	const [paginatedDeals, setPaginatedDeals] = useState([]);
 	const [loading, setLoading] = useState(true);
+	const [dealsActiveIndex, setDealsActiveIndex] = useState(0);
+
+	const dealsRef = useRef(null);
 
 	useEffect(() => {
-		// (async () => {
-		// 	setLoading(true)
-
-		// 	const response = await api.get('/r/gamedeals/new.json?limit=50');
-		// 	const { data } = response.data
-		// 	// console.log(data.children)
-
-		// 	extractFreeGames(data.children)
-		// 	extractStore(data.children)
-
-		// 	// console.log(readyData)
-		// 	// setData(readyData);
-		// 	setLoading(false);
-		// })();
 		setLoading(true)
 
 		extractStore()
@@ -60,6 +51,7 @@ export default function Index({ allDealsData }) {
 			}
 		})
 
+		setPaginatedDeals(paginate(data, 10))
 		setDeals(data)
 	}
 
@@ -77,8 +69,67 @@ export default function Index({ allDealsData }) {
 			}
 		})
 
-		// setPaginatedFreeGames(paginate(freeGames, 3))
+		setPaginatedFreeGames(paginate(freeGames, 3))
 		setFreeGames(freeGames);
+	}
+
+	function paginate(array, page_size) {
+		let pages;
+		let paginatedArray = [];
+
+		if (array.length % page_size !== 0) {
+			console.log(parseInt(array.length / page_size))
+			console.log(array.length % page_size)
+			pages = parseInt(array.length / page_size) + 1;
+		}
+		else {
+			console.log(array.length / page_size);
+			pages = array.length / page_size;
+		}
+
+		console.log("cade", pages, array, page_size)
+
+		for (let i = 1; i <= pages; i++) {
+			const _array = [...array];
+			console.log(_array.slice(i * page_size, i * page_size))
+			paginatedArray = [...paginatedArray, array.slice((i - 1) * page_size, i * page_size)]
+		}
+
+		console.log("coe", paginatedArray)
+
+		return paginatedArray;
+		// console.log("array length", array.length, page_number)
+
+		// array.slice((page_number - 1) * page_size, page_number * page_size);
+
+		// human-readable page numbers usually start with 1, so we reduce 1 in the first argument
+		// return array.slice((page_number - 1) * page_size, page_number * page_size);
+	}
+
+	function setPage(key, index) {
+		const activeIndex = dealsActiveIndex;
+
+		const page = {
+			'next': () => {
+				if (dealsActiveIndex != paginatedDeals.length - 1) {
+					return activeIndex + 1
+				}
+			},
+			'prev': () => {
+				if (dealsActiveIndex != 0) {
+					return activeIndex + 1
+				}
+			},
+			'index': () => {
+				return index;
+			}
+		}
+
+		setDealsActiveIndex(page[key]());
+		dealsRef.current.scrollIntoView({
+			behavior: 'smooth',
+			block: 'start',
+		})
 	}
 
 	if (loading) {
@@ -89,35 +140,7 @@ export default function Index({ allDealsData }) {
 						<span className="sr-only"></span>
 					</Spinner>
 				</div>
-				<Container>
-					<Row className="justify-content-center">
-						{allDealsData.map(deal => {
-							let matches = deal.data.title.match(/\[(.*?)\]/);
-
-							if (matches) {
-								var submatch = matches[1];
-								deal.data.store = submatch;
-							}
-
-							return (
-								< Col lg={4} key={deal.data.id} className="d-flex" >
-									<div className="card-post d-flex flex-column justify-content-between">
-
-										<h6><Badge variant="secondary">#{deal.data.store}</Badge></h6>
-
-										<a className="deal-link" href={deal.data.url}>
-											<h5 className="post-title">{deal.data.title}</h5>
-										</a>
-										<h5 className="post-title">{deal.data.selftext}</h5>
-
-
-										<small className="meta"><p>Posted {moment.unix(deal.data.created).format('lll')} via <a href={`https://reddit.com/${deal.data.permalink}`} target="_blank" rel="noopener noreferrer">reddit</a></p></small>
-									</div>
-								</Col>
-							)
-						})}
-					</Row>
-				</Container >
+				<StaticContent allDealsData={allDealsData} />
 			</>
 		)
 	}
@@ -129,78 +152,29 @@ export default function Index({ allDealsData }) {
 			</Head>
 
 			<section>
+
 				<Container>
+					<CustomCarousel data={paginatedFreeGames} />
 
-
-					{/* <CarouselTeste data={data} /> */}
-
-					{/* <CarouselItems data={paginatedFreeGames} /> */}
-
-
-					<Row className="justify-content-center mt-5" id="deals">
-						<Col lg={10}>
-							<h1 className="my-4">Deals</h1>
-						</Col>
+					<div ref={dealsRef} />
+					<Deals deals={paginatedDeals[dealsActiveIndex]} />
+					<Row className="d-flex justify-content-center">
+						<Pagination>
+							{dealsActiveIndex != 0 ? <Pagination.Prev onClick={() => setPage('prev')} /> : null}
+							{paginatedDeals.map((d, index) => (
+								<Pagination.Item key={index.toString()} active={index === dealsActiveIndex} onClick={() => setPage('index', index)}>
+									{index + 1}
+								</Pagination.Item>
+							))}
+							{/* <Pagination.Next onClick={nextPage} /> */}
+							{dealsActiveIndex != paginatedDeals.length - 1 ? <Pagination.Next onClick={() => setPage('next')} /> : null}
+						</Pagination>
 					</Row>
 
-					<Row className="justify-content-center">
-
-						{(deals.map(deal => (
-
-
-							<Col lg={10} key={deal.data.id} className="post-preview">
-								<div>
-
-									<h6>  <Badge variant="secondary">#{deal.data.store}</Badge></h6>
-
-									<a href={deal.data.url}>
-										<h5 className="post-title">{deal.data.title}</h5>
-
-										<p style={{ wordBreak: 'break-all' }}>
-											{deal.data.url}
-										</p>
-									</a>
-									<small><p>Posted {moment.unix(deal.data.created).format('lll')} via <a href={`https://reddit.com/${deal.data.permalink}`} target="_blank" rel="noopener noreferrer">reddit</a></p></small>
-
-								</div>
-								<hr />
-							</Col>
-						))
-						)}
-					</Row>
-					<Row className="justify-content-center" id="free">
-						<h1 className="my-4">Free</h1>
-					</Row>
-					<Row className="justify-content-center">
-
-						{freeGames.map(deal => (
-
-							<Col lg={4} key={deal.data.id} className="d-flex">
-								<div className="card-post d-flex flex-column justify-content-between">
-
-									<h6><Badge variant="secondary">#{deal.data.store}</Badge></h6>
-
-									<a className="deal-link" href={deal.data.url}>
-										<h5 className="post-title">{deal.data.title}</h5>
-
-										{/* <p>
-							{deal.data.url}
-						</p> */}
-									</a>
-
-									<small className="meta"><p>Posted {moment.unix(deal.data.created).format('lll')} via <a href={`https://reddit.com/${deal.data.permalink}`} target="_blank" rel="noopener noreferrer">reddit</a></p></small>
-								</div>
-
-							</Col>
-						))}
-					</Row>
-
-				</Container >
-
+					<FreeGames freeGames={freeGames} />
+				</Container>
 			</section>
-			<section>
-				<About />
-			</section>
+			<About />
 		</Layout >
 	)
 }
