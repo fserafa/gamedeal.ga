@@ -9,7 +9,7 @@ import Deals from '../components/Deals';
 import StaticContent from '../components/StaticContent';
 import CustomCarousel from '../components/CustomCarousel'
 
-export async function getStaticProps() {
+export async function getServerSideProps() {
 	const allDealsData = await getDealsData();
 	return {
 		props: {
@@ -133,16 +133,7 @@ export default function Index({ allDealsData }) {
 	}
 
 	if (loading) {
-		return (
-			<>
-				<div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
-					<Spinner animation="border" role="status">
-						<span className="sr-only"></span>
-					</Spinner>
-				</div>
-				<StaticContent allDealsData={allDealsData} />
-			</>
-		)
+		return <StaticContent allDealsData={allDealsData} />;
 	}
 
 	return (
@@ -154,6 +145,13 @@ export default function Index({ allDealsData }) {
 			<section>
 
 				<Container>
+					{loading ?
+						<div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+							<Spinner animation="border" role="status">
+								<span className="sr-only"></span>
+							</Spinner>
+						</div> : null}
+
 					<CustomCarousel data={paginatedFreeGames} />
 
 					<div ref={dealsRef} />
@@ -171,7 +169,7 @@ export default function Index({ allDealsData }) {
 						</Pagination>
 					</Row>
 
-					<FreeGames freeGames={freeGames} />
+					{/* <FreeGames freeGames={freeGames} /> */}
 				</Container>
 			</section>
 			<About />
