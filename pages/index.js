@@ -18,6 +18,15 @@ export async function getServerSideProps() {
 	}
 }
 
+// export async function getStaticProps() {
+// 	const allDealsData = await getDealsData();
+// 	return {
+// 		props: {
+// 			allDealsData
+// 		}
+// 	}
+// }
+
 export default function Index({ allDealsData }) {
 	const [deals, setDeals] = useState([]);
 	const [freeGames, setFreeGames] = useState([]);
