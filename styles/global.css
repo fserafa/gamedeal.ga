@@ -76,3 +76,7 @@ html {
     font-size: 40px;
     color: #0085a1;
 }
+
+.carousel-inner {
+    overflow: visible;
+}

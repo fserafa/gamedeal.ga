@@ -26,10 +26,10 @@ export default function CustomCarousel({ data }) {
                     <Carousel.Item key={index.toString()}>
                         <Container>
                             <Row className="justify-content-center">
-                                <Col lg={10}>
+                                <Col lg={10} md={12} sm={12} xs={12}>
                                     <Row>
                                         {d.map(deal => (
-                                            <Col lg={4} key={deal.data.id} className="d-flex">
+                                            <Col lg={4} md={12} sm={12} xs={12} key={deal.data.id} className="d-flex">
                                                 <div className="card-post d-flex flex-column justify-content-between">
 
                                                     <h6><Badge variant="secondary">#{deal.data.store}</Badge></h6>

@@ -9,7 +9,7 @@ import Deals from '../components/Deals';
 import StaticContent from '../components/StaticContent';
 import CustomCarousel from '../components/CustomCarousel'
 
-export async function getServerSideProps() {
+export async function getStaticProps() {
 	const allDealsData = await getDealsData();
 	return {
 		props: {
@@ -17,15 +17,6 @@ export async function getServerSideProps() {
 		}
 	}
 }
-
-// export async function getStaticProps() {
-// 	const allDealsData = await getDealsData();
-// 	return {
-// 		props: {
-// 			allDealsData
-// 		}
-// 	}
-// }
 
 export default function Index({ allDealsData }) {
 	const [deals, setDeals] = useState([]);
@@ -117,7 +108,10 @@ export default function Index({ allDealsData }) {
 
 	function setPage(key, index) {
 		const activeIndex = dealsActiveIndex;
+		console.log("dealsActiveIndex", dealsActiveIndex)
 
+		console.log("activeIndex", activeIndex)
+		console.log("index", index)
 		const page = {
 			'next': () => {
 				if (dealsActiveIndex != paginatedDeals.length - 1) {
@@ -126,7 +120,7 @@ export default function Index({ allDealsData }) {
 			},
 			'prev': () => {
 				if (dealsActiveIndex != 0) {
-					return activeIndex + 1
+					return activeIndex - 1
 				}
 			},
 			'index': () => {

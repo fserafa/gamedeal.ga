@@ -5,13 +5,13 @@ export default function FreeGames({ freeGames }) {
     return (
         <>
             <Row className="justify-content-center" id="freeGames">
-                <h1 className="my-4">Free</h1>
+                <h1 className="my-5">Free</h1>
             </Row>
             <Row className="justify-content-center">
 
                 {freeGames.map(deal => (
 
-                    <Col lg={4} key={deal.data.id} className="d-flex">
+                    <Col lg={4} sm={12} key={deal.data.id} className="d-flex">
                         <div className="card-post d-flex flex-column justify-content-between">
 
                             <h6><Badge variant="secondary">#{deal.data.store}</Badge></h6>
