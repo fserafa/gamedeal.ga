@@ -8,15 +8,28 @@ import FreeGames from '../components/FreeGames';
 import Deals from '../components/Deals';
 import StaticContent from '../components/StaticContent';
 import CustomCarousel from '../components/CustomCarousel'
+import api from '../services/api';
 
-export async function getStaticProps() {
-	const allDealsData = await getDealsData();
+// export async function getStaticProps() {
+// 	const allDealsData = await getDealsData();
+// 	return {
+// 		props: {
+// 			allDealsData
+// 		}
+// 	}
+// }
+
+export async function getServerSideProps() {
+	const response = await api.get('/r/gamedeals/new.json?limit=50');
+	const { data } = response.data;
+	let allDealsData = data.children;
+
 	return {
-		props: {
-			allDealsData
-		}
+		props: { allDealsData }
 	}
 }
+
+
 
 export default function Index({ allDealsData }) {
 	const [deals, setDeals] = useState([]);
@@ -28,6 +41,8 @@ export default function Index({ allDealsData }) {
 
 	const dealsRef = useRef(null);
 
+
+
 	useEffect(() => {
 		setLoading(true)
 
@@ -35,7 +50,6 @@ export default function Index({ allDealsData }) {
 		extractFreeGames()
 
 		setLoading(false)
-
 	}, []);
 
 
@@ -135,9 +149,33 @@ export default function Index({ allDealsData }) {
 		})
 	}
 
-	if (loading) {
-		return <StaticContent allDealsData={allDealsData} />;
-	}
+	// if (loading) {
+	// 	return (
+	// 		<div>
+	// 			{/* <StaticContent allDealsData={allDealsData} /> */}
+	// 			{allDealsData.map(deal => {
+	// 				let matches = deal.data.title.match(/\[(.*?)\]/);
+
+	// 				if (matches) {
+	// 					var submatch = matches[1];
+	// 					deal.data.store = submatch;
+	// 				}
+	// 				return (
+	// 					< div key={deal.data.id} >
+
+	// 						<div>
+	// 							<a className="deal-link" href={deal.data.url}>
+	// 								<h5 className="post-title">{deal.data.title}</h5>
+	// 							</a>
+	// 							<h5 className="post-title">{deal.data.selftext}</h5>
+	// 						</div>
+	// 					</div>
+	// 				)
+	// 			})}
+	// 			<About />
+	// 		</div>
+	// 	);
+	// }
 
 	return (
 		<Layout>
@@ -153,12 +191,31 @@ export default function Index({ allDealsData }) {
 							<Spinner animation="border" role="status">
 								<span className="sr-only"></span>
 							</Spinner>
+							{allDealsData.map(deal => {
+								let matches = deal.data.title.match(/\[(.*?)\]/);
+
+								if (matches) {
+									var submatch = matches[1];
+									deal.data.store = submatch;
+								}
+								return (
+									< div key={deal.data.id} >
+
+										<div>
+											<a className="deal-link" href={deal.data.url}>
+												<h5 className="post-title">{deal.data.title}</h5>
+											</a>
+											<h5 className="post-title">{deal.data.selftext}</h5>
+										</div>
+									</div>
+								)
+							})}
 						</div> : null}
 
 					<CustomCarousel data={paginatedFreeGames} />
 
 					<div ref={dealsRef} />
-					<Deals deals={paginatedDeals[dealsActiveIndex]} />
+					{paginatedDeals.length > 0 ? <Deals deals={paginatedDeals[dealsActiveIndex]} /> : null}
 					<Row className="d-flex justify-content-center">
 						<Pagination>
 							{dealsActiveIndex != 0 ? <Pagination.Prev onClick={() => setPage('prev')} /> : null}
